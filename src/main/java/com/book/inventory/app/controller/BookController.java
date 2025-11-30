@@ -1,79 +1,59 @@
-//package com.book.inventory.app.controller;
-//
-//public class BookController {
-//}
-
 package com.book.inventory.app.controller;
 
 import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
-
 import com.book.inventory.app.domain.Book;
 import com.book.inventory.app.repo.BookRepo;
 
-/**
- * Controller class responsible for handling HTTP requests related to books.
- */
+//Controller class responsible for handling HTTP requests related to books.
+
 @Controller
 public class BookController {
 
     @Autowired
     private BookRepo repo;
 
-    /**
-     * Displays the index page.
-     */
+    //Displays the index page.
     @GetMapping("/")
     public String showIndex(Model model) {
         model.addAttribute("book", new Book());
         return "index";
     }
 
-    /**
-     * Displays the page for adding a new book.
-     */
+    //Displays the page for adding a new book.
     @GetMapping("/addBook")
     public String showaddBook(Model model) {
         model.addAttribute("book", new Book());
         return "addbook";
     }
 
-    /**
-     * Displays the page for updating a book.
-     */
+    // Displays the page for updating a book.
     @GetMapping("/updateBook")
     public String showupdateBook(Model model) {
         model.addAttribute("book", new Book());
         return "updatebook";
     }
 
-    /**
-     * Displays the page for deleting a book.
-     */
+    //Displays the page for deleting a book.
     @GetMapping("/deleteBook")
     public String showdeleteBook(Model model) {
         model.addAttribute("book", new Book());
         return "deletebook";
     }
 
-    /**
-     * Displays the page for searching a book.
-     */
+    //Displays the page for searching a book.
     @GetMapping("/search")
     public String searchBook(Model model) {
         model.addAttribute("book", new Book());
         return "search";
     }
 
-    /**
-     * Displays information about the books.
-     */
+    //Displays information about the books.
     @GetMapping("/info")
     public String getInfo(Model model) {
         long totalBooks = repo.count();
@@ -91,9 +71,7 @@ public class BookController {
         return "info";
     }
 
-    /**
-     * Saves a new book to the database.
-     */
+    //Saves a new book to the database.
     @PostMapping("/addBook")
     public String saveBook(@ModelAttribute Book book, Model model) {
         try {
@@ -105,9 +83,7 @@ public class BookController {
         return "addBook";
     }
 
-    /**
-     * Searches for a book in the database.
-     */
+    //Searches for a book in the database.
     @PostMapping("/search")
     public String searchBook(@ModelAttribute Book book, Model model) {
         Book foundBook = repo.findByBookid(book.getBookid());
@@ -123,9 +99,7 @@ public class BookController {
         return "search";
     }
 
-    /**
-     * Deletes a book from the database.
-     */
+    //Deletes a book from the database.
     @PostMapping("/deleteBook")
     public String deleteBook(@ModelAttribute Book book, Model model) {
         String bookId = book.getBookid();

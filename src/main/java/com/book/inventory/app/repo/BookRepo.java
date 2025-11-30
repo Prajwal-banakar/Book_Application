@@ -1,7 +1,3 @@
-//package com.book.inventory.app.repo;
-//
-//public class BookRepo {
-//}
 package com.book.inventory.app.repo;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
