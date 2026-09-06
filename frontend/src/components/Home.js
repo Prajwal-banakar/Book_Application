@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { FaSearch, FaBook, FaStar, FaGlobe, FaLightbulb, FaHeart, FaTimes, FaCommentAlt } from 'react-icons/fa';
+import { motion } from 'framer-motion';
+import { FaSearch, FaBook, FaStar, FaGlobe, FaLightbulb, FaHeart, FaTimes, FaCommentAlt, FaMagic } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
-import FeaturedBooks from './FeaturedBooks'; // Import the new component
+import FeaturedBooks from './FeaturedBooks';
 
 const Home = () => {
   const { user } = useAuth();
@@ -23,18 +23,14 @@ const Home = () => {
 
   const fetchFeaturedBooks = async () => {
     try {
-      // For now, we'll just fetch all books and slice them.
-      // In a real app, these would be separate API endpoints.
       const response = await axios.get('/api/books');
       const allBooks = response.data;
 
-      // Sort by publication year for new arrivals (descending)
-      const sortedByYear = [...allBooks].sort((a, b) => parseInt(b.publicationYear) - parseInt(a.publicationYear));
-      setNewArrivals(sortedByYear.slice(0, 8)); // Get top 8 new arrivals
+      const sortedByYear = [...allBooks].sort((a, b) => parseInt(b.publicationYear || 0) - parseInt(a.publicationYear || 0));
+      setNewArrivals(sortedByYear.slice(0, 8));
 
-      // Sort by average rating for top rated (descending)
-      const sortedByRating = [...allBooks].sort((a, b) => b.averageRating - a.averageRating);
-      setTopRated(sortedByRating.slice(0, 8)); // Get top 8 top rated
+      const sortedByRating = [...allBooks].sort((a, b) => (b.averageRating || 0) - (a.averageRating || 0));
+      setTopRated(sortedByRating.slice(0, 8));
     } catch (error) {
       console.error('Error fetching featured books:', error);
     }
@@ -66,63 +62,75 @@ const Home = () => {
   ];
 
   return (
-    <div className="pb-5 position-relative" style={{ minHeight: '100vh' }}>
+    <div className="pb-5 position-relative">
       {/* Hero Section */}
-      <section className="hero-section text-center d-flex flex-column justify-content-center align-items-center py-5">
-        <div className="container">
+      <section className="hero-wrapper text-center d-flex flex-column justify-content-center align-items-center">
+        <div className="container position-relative" style={{ zIndex: 2 }}>
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
+            className="col-lg-10 mx-auto"
           >
-            <h1 className="display-4 fw-bold mb-3" style={{color: '#1e293b'}}>
-              Discover Your Next Great Read at <span style={{color: '#4f46e5'}}>BookHaven</span>
+            <div className="hero-pill-tag mx-auto">
+              <FaMagic className="text-primary" /> Discover Over 10,000+ Curated Books
+            </div>
+
+            <h1 className="hero-title-main">
+              Unleash Your Imagination with <span className="text-gradient">BookHaven</span>
             </h1>
-            <p className="lead mb-5 text-muted">
-              Explore a vast collection of books, from timeless classics to new releases.
+
+            <p className="lead mb-4 text-secondary mx-auto col-md-9" style={{ fontSize: '1.15rem' }}>
+              Your gateway to timeless literary classics, bestsellers, and real-time community reviews.
             </p>
 
-            <form onSubmit={handleSearch} className="d-flex justify-content-center w-100">
-              <div className="input-group shadow-lg rounded-pill overflow-hidden" style={{ maxWidth: '700px' }}>
+            <form onSubmit={handleSearch} className="d-flex justify-content-center w-100 mb-4">
+              <div className="search-box-glass input-group w-100" style={{ maxWidth: '680px' }}>
                 <input
                   type="text"
-                  className="form-control form-control-lg border-0 px-4"
-                  placeholder="Search by title, author, or ISBN..."
+                  className="form-control search-box-input"
+                  placeholder="Search by title, author, or genre..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
-                <button className="btn btn-primary px-4" type="submit">
+                <button className="btn btn-modern-primary px-4" type="submit">
                   <FaSearch /> Search
                 </button>
               </div>
             </form>
+
+            <div className="d-flex align-items-center justify-content-center gap-3 text-muted small">
+              <span className="fw-semibold">Popular Searches:</span>
+              <Link to="/search?genre=Fiction" className="badge bg-white text-secondary border px-3 py-1 text-decoration-none">Fiction</Link>
+              <Link to="/search?genre=Science" className="badge bg-white text-secondary border px-3 py-1 text-decoration-none">Science</Link>
+              <Link to="/search?genre=Fantasy" className="badge bg-white text-secondary border px-3 py-1 text-decoration-none">Fantasy</Link>
+            </div>
           </motion.div>
         </div>
       </section>
 
-      {/* Recommended Books Section */}
-      <FeaturedBooks title="Recommended for You" books={recommended} />
-
-      {/* New Arrivals Section */}
+      {/* Featured Sections */}
+      {recommended.length > 0 && <FeaturedBooks title="Recommended for You" books={recommended} />}
       <FeaturedBooks title="New Arrivals" books={newArrivals} />
-
-      {/* Top Rated Books Section */}
       <FeaturedBooks title="Top Rated Books" books={topRated} />
 
       {/* Browse by Genre Section */}
       <section className="container py-5">
-        <h2 className="mb-4 fw-bold text-center">Browse by Genre</h2>
+        <div className="text-center mb-4">
+          <h3 className="fw-bold font-heading text-primary m-0">Browse by Genre</h3>
+          <p className="text-muted small">Find your favorite category with one click</p>
+        </div>
         <div className="row g-4 justify-content-center">
           {genres.map((genre, index) => (
             <motion.div
               key={index}
               className="col-6 col-md-4 col-lg-2"
-              whileHover={{ scale: 1.05 }}
+              whileHover={{ y: -6 }}
             >
               <Link to={`/search?genre=${genre.name}`} className="text-decoration-none">
-                <div className="card text-center p-3 shadow-sm h-100 d-flex flex-column justify-content-center align-items-center">
-                  <div className="mb-3 text-primary" style={{ fontSize: '3rem' }}>{genre.icon}</div>
-                  <h5 className="fw-bold text-dark">{genre.name}</h5>
+                <div className="genre-card">
+                  <div className="genre-icon-wrapper">{genre.icon}</div>
+                  <h6 className="fw-bold text-dark m-0">{genre.name}</h6>
                 </div>
               </Link>
             </motion.div>
@@ -130,62 +138,26 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Floating Chat Button (replaces old contact button) */}
+      {/* Floating Chat Button */}
       {!isAdmin && (
         <motion.button
-          className="btn btn-primary rounded-circle d-flex align-items-center justify-content-center"
+          className="btn btn-modern-primary rounded-circle p-0 d-flex align-items-center justify-content-center"
           style={{
             position: 'fixed',
-            bottom: '30_px',
-            right: '30px',
-            width: '60px',
-            height: '60px',
+            bottom: '28px',
+            right: '28px',
+            width: '58px',
+            height: '58px',
             zIndex: 9999,
-            boxShadow: '0 4px 15px rgba(79, 70, 229, 0.5)',
-            border: '2px solid white',
-            padding: 0
+            border: '2px solid white'
           }}
           whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
+          whileTap={{ scale: 0.95 }}
           onClick={() => setShowContact(!showContact)}
         >
-          {showContact ? (
-            <FaTimes size={24} color="white" />
-          ) : (
-            <FaCommentAlt size={24} color="white" />
-          )}
+          {showContact ? <FaTimes size={22} color="white" /> : <FaCommentAlt size={22} color="white" />}
         </motion.button>
       )}
-
-      {/* Chat Modal/Popup */}
-      <AnimatePresence>
-        {showContact && (
-          <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            style={{
-              position: 'fixed',
-              bottom: '100px',
-              right: '30px',
-              width: '370px',
-              height: '500px',
-              zIndex: 9999
-            }}
-            className="card shadow-lg border-0 overflow-hidden"
-          >
-            <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center p-3">
-              <h5 className="mb-0 fw-bold">Chat with Support</h5>
-              <button className="btn btn-sm text-white" onClick={() => setShowContact(false)}>
-                <FaTimes />
-              </button>
-            </div>
-            <div className="card-body p-0 h-100">
-              {/* The ChatWindow component is now part of the ChatWidget */}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 };

@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { FaEnvelope, FaUser, FaTruck } from 'react-icons/fa';
+import { FaEnvelope, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
 import AdminStats from './AdminStats';
 import AdminBookManagement from './AdminBookManagement';
 
@@ -28,7 +27,7 @@ const AdminDashboard = () => {
     try {
       const [booksRes, usersRes, ordersRes] = await Promise.all([
         axios.get('/api/books'),
-        axios.get('/api/users'), // Assuming you have a /api/users endpoint
+        axios.get('/api/users'),
         axios.get('/api/orders/all')
       ]);
       setStats({
@@ -50,79 +49,100 @@ const AdminDashboard = () => {
     }
   };
 
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case 'APPROVED':
+        return <span className="badge-pill-modern badge-approved">APPROVED</span>;
+      case 'PENDING':
+        return <span className="badge-pill-modern badge-pending">PENDING</span>;
+      case 'DELIVERED':
+        return <span className="badge-pill-modern badge-delivered">DELIVERED</span>;
+      default:
+        return <span className="badge-pill-modern badge-cancelled">{status}</span>;
+    }
+  };
+
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="col-md-12"
-    >
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="fw-bold mb-0" style={{color: '#4e54c8'}}>Admin Dashboard</h2>
-        <Link to="/admin/messages" className="btn btn-outline-primary d-flex align-items-center gap-2">
-          <FaEnvelope /> View Messages
+    <div className="container py-5">
+      <div className="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+        <div>
+          <h2 className="fw-bold font-heading text-primary m-0">Admin Overview & Control Center</h2>
+          <p className="text-muted small m-0">Manage catalog inventory, monitor stats, and process user orders</p>
+        </div>
+        <Link to="/admin/messages" className="btn btn-modern-outline btn-sm d-flex align-items-center gap-2">
+          <FaEnvelope /> View Inquiries
         </Link>
       </div>
 
       <AdminStats stats={stats} />
 
-      <div className="card shadow-sm mt-4">
-        <div className="card-header bg-white py-3">
-          <h5 className="mb-0 fw-bold">Recent Orders</h5>
+      {/* Orders Table */}
+      <div className="glass-container p-4 mb-5 shadow-sm">
+        <div className="d-flex align-items-center justify-content-between mb-3">
+          <h5 className="fw-bold font-heading text-primary m-0">Recent Customer Orders</h5>
+          <span className="badge bg-light text-secondary border px-3 py-1">
+            Showing top {Math.min(5, orders.length)} orders
+          </span>
         </div>
-        <div className="card-body p-0">
-          <div className="table-responsive">
-            <table className="table table-hover mb-0 align-middle">
-              <thead className="bg-light">
-                <tr>
-                  <th className="p-3">Order ID</th>
-                  <th className="p-3">User</th>
-                  <th className="p-3">Total</th>
-                  <th className="p-3">Date</th>
-                  <th className="p-3">Status</th>
-                  <th className="p-3">Actions</th>
+
+        <div className="table-responsive">
+          <table className="modern-table">
+            <thead>
+              <tr>
+                <th>Order Ref</th>
+                <th>Customer</th>
+                <th>Total Value</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {orders.slice(0, 5).map((order) => (
+                <tr key={order.id}>
+                  <td>
+                    <span className="fw-bold text-dark font-monospace">#{order.id.substring(0, 8)}</span>
+                  </td>
+                  <td>
+                    <span className="fw-semibold text-secondary">{order.username}</span>
+                  </td>
+                  <td>
+                    <span className="fw-extrabold font-heading text-primary">₹{order.totalPrice || order.price}</span>
+                  </td>
+                  <td className="small text-muted">
+                    {new Date(order.orderDate).toLocaleDateString()}
+                  </td>
+                  <td>{getStatusBadge(order.status)}</td>
+                  <td>
+                    <div className="btn-group btn-group-sm">
+                      <button
+                        className="btn btn-outline-success btn-sm d-flex align-items-center gap-1 rounded-start-pill"
+                        onClick={() => updateStatus(order.id, 'APPROVED')}
+                        disabled={order.status !== 'PENDING'}
+                      >
+                        <FaCheckCircle size={12} /> Approve
+                      </button>
+                      <button
+                        className="btn btn-outline-danger btn-sm d-flex align-items-center gap-1 rounded-end-pill"
+                        onClick={() => updateStatus(order.id, 'CANCELLED')}
+                        disabled={order.status === 'CANCELLED' || order.status === 'DELIVERED'}
+                      >
+                        <FaTimesCircle size={12} /> Cancel
+                      </button>
+                    </div>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {orders.slice(0, 5).map(order => ( // Show only the 5 most recent orders
-                  <tr key={order.id}>
-                    <td className="p-3"><small className="text-muted">#{order.id.substring(0, 8)}</small></td>
-                    <td className="p-3">{order.username}</td>
-                    <td className="p-3 fw-bold">₹{order.totalPrice || order.price}</td>
-                    <td className="p-3">{new Date(order.orderDate).toLocaleDateString()}</td>
-                    <td className="p-3">
-                      <span className={`badge bg-${order.status === 'PENDING' ? 'warning' : order.status === 'APPROVED' ? 'info' : order.status === 'DELIVERED' ? 'success' : 'secondary'}`}>
-                        {order.status}
-                      </span>
-                    </td>
-                    <td className="p-3">
-                      <div className="btn-group btn-group-sm">
-                        <button
-                          className="btn btn-outline-success"
-                          onClick={() => updateStatus(order.id, 'APPROVED')}
-                          disabled={order.status !== 'PENDING'}
-                        >
-                          Approve
-                        </button>
-                        <button
-                          className="btn btn-outline-danger"
-                          onClick={() => updateStatus(order.id, 'CANCELLED')}
-                          disabled={order.status === 'CANCELLED' || order.status === 'DELIVERED'}
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </table>
+          {orders.length === 0 && (
+            <p className="text-center text-muted py-4 m-0">No customer orders recorded yet.</p>
+          )}
         </div>
       </div>
 
       <AdminBookManagement />
-
-    </motion.div>
+    </div>
   );
 };
 

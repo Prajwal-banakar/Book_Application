@@ -11,19 +11,18 @@ const NotificationDropdown = () => {
 
   useEffect(() => {
     fetchNotifications();
-    const interval = setInterval(fetchNotifications, 10000); // Poll every 10s
+    const interval = setInterval(fetchNotifications, 10000);
     return () => clearInterval(interval);
   }, []);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsOpen(false);
       }
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const fetchNotifications = async () => {
@@ -59,21 +58,26 @@ const NotificationDropdown = () => {
 
   const getIcon = (type) => {
     switch (type) {
-      case 'SUCCESS': return <FaCheckCircle className="text-success" />;
-      case 'WARNING': return <FaExclamationCircle className="text-warning" />;
-      default: return <FaInfoCircle className="text-primary" />;
+      case 'SUCCESS':
+        return <FaCheckCircle className="text-success" />;
+      case 'WARNING':
+        return <FaExclamationCircle className="text-warning" />;
+      default:
+        return <FaInfoCircle className="text-primary" />;
     }
   };
 
   return (
-    <div className="position-relative" ref={dropdownRef}>
+    <div className="position-relative me-2" ref={dropdownRef}>
       <button
-        className="btn btn-link text-white position-relative p-0 me-3"
+        className="btn btn-link text-white position-relative p-2 rounded-circle bg-white bg-opacity-10 d-flex align-items-center justify-content-center transition-all hover-scale"
+        style={{ width: '42px', height: '42px' }}
         onClick={() => setIsOpen(!isOpen)}
+        title="Notifications"
       >
-        <FaBell size={20} />
+        <FaBell size={18} />
         {unreadCount > 0 && (
-          <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style={{fontSize: '0.6rem'}}>
+          <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger shadow-sm px-2 py-1" style={{ fontSize: '0.65rem' }}>
             {unreadCount}
           </span>
         )}
@@ -82,37 +86,40 @@ const NotificationDropdown = () => {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 10 }}
-            className="position-absolute end-0 mt-2 bg-white rounded-3 shadow-lg overflow-hidden"
-            style={{ width: '320px', zIndex: 1050, right: '-50px' }}
+            initial={{ opacity: 0, y: 12, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 12, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
+            className="position-absolute end-0 mt-2 rounded-4 shadow-lg overflow-hidden border border-white border-opacity-20"
+            style={{ width: '340px', zIndex: 1050, background: 'rgba(15, 23, 42, 0.94)', backdropFilter: 'blur(16px)' }}
           >
-            <div className="d-flex justify-content-between align-items-center p-3 border-bottom bg-light">
-              <h6 className="mb-0 fw-bold text-dark">Notifications</h6>
+            <div className="d-flex justify-content-between align-items-center p-3 border-bottom border-secondary border-opacity-20">
+              <h6 className="mb-0 fw-bold text-white font-heading">Notifications</h6>
               {unreadCount > 0 && (
-                <button className="btn btn-sm btn-link text-decoration-none p-0" onClick={handleMarkAllRead}>
+                <button className="btn btn-sm btn-link text-primary text-decoration-none p-0 fw-semibold small" onClick={handleMarkAllRead}>
                   Mark all read
                 </button>
               )}
             </div>
 
-            <div className="overflow-auto" style={{ maxHeight: '300px' }}>
+            <div className="overflow-auto scrollbar-hidden" style={{ maxHeight: '320px' }}>
               {notifications.length === 0 ? (
-                <div className="p-4 text-center text-muted small">No notifications</div>
+                <div className="p-4 text-center text-white-50 small">No notifications yet</div>
               ) : (
-                notifications.map(notif => (
+                notifications.map((notif) => (
                   <div
                     key={notif.id}
-                    className={`p-3 border-bottom ${notif.read ? 'bg-white' : 'bg-blue-50'}`}
-                    style={{ backgroundColor: notif.read ? 'white' : '#f0f9ff', cursor: 'pointer' }}
+                    className={`p-3 border-bottom border-secondary border-opacity-10 transition-all ${
+                      notif.read ? 'bg-transparent text-white-50' : 'bg-white bg-opacity-10 text-white'
+                    }`}
+                    style={{ cursor: 'pointer' }}
                     onClick={() => handleMarkAsRead(notif.id)}
                   >
-                    <div className="d-flex gap-3">
+                    <div className="d-flex gap-3 align-items-start">
                       <div className="mt-1">{getIcon(notif.type)}</div>
-                      <div>
-                        <p className="mb-1 small text-dark">{notif.message}</p>
-                        <small className="text-muted" style={{fontSize: '0.7rem'}}>
+                      <div className="flex-grow-1">
+                        <p className="mb-1 small font-heading fw-medium">{notif.message}</p>
+                        <small className="text-white-50" style={{ fontSize: '0.7rem' }}>
                           {new Date(notif.timestamp).toLocaleString()}
                         </small>
                       </div>
